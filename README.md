@@ -96,15 +96,9 @@ Esta aplicación tiene como objetivo la gestión de las prácticas FCT de los al
 
 1. **Pantalla Principal**:
    <div align="center">
-      <img width="850px" src="./imagenes/paginaPrincipal.png" alt="paginaPrincipal">
+      <img width="850px" src="./img/inicio.png" alt="paginaPrincipal">
    </div>
 
-2. **Formulario de Ingreso de Datos**:
-   <div align="center">
-      <img width="850px" src="./imagenes/formulario.png" alt="formulario">
-   </div>
-
----
 
  ## 🤝 Contribuciones
 
