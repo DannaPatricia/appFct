@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link href="../style.css" rel="stylesheet">
+</head>
+<body>
+    <header>
+        <nav class="nav-usuario" aria-label="nav-usuario">
+            <div class="container-usuario">
+                <span class="nombre-web">Gestión FCT</span>
+                <div class="usuario-opciones">
+                    <span class="usuario" id="nombreUsuario"></span>
+                    <span class="usuario" id="opcionesAdmin"></span>
+                    <span class="usuario" id="opcionesTutor"></span>
+                    <a class="cerrar-sesion" href="http://localhost:3000/logout">Cerrar sesión</a>
+                </div>
+            </div>
+        </nav>
+        <nav class="nav-navegacion">
+            <div class="container-navegacion">
+                <ul class="menu" id="navNavegacion">
+                    <li><a href="fases.html?tipo=asignar">Asignar a empresa</a></li>
+                    <li><a href="fases.html?tipo=convenio">Realizar convenio</a></li>
+                    <li><a href="menuTutor.html">Inicio</a></li>
+                    <li><a href="fases.html?tipo=relacion">Relación alumnos</a></li>
+                    <li><a href="fases.html?tipo=horario">Programa y horario</a></li>
+                    <li><a href="seguimiento.html">Seguimiento</a></li>
+                </ul>
+            </div>
+        </nav>
+    </header>
+    <main>
+        <div class="buscador">
+            <input id="busqueda" type="text" placeholder="🔍 Buscar por nombre o estado..." onkeyup="filtrarDatos()">
+        </div>
+        <h1>Alumnos y estados</h1>
+        <div class="formulario" id="listAlumnos"></div>
+    </main>
+    <footer class="footer">
+        <div class="footer-container">
+            <p>&copy; 2025 Gestión FCT. Todos los derechos reservados.</p>
+        </div>
+    </footer>
+    <script>
+    document.addEventListener("DOMContentLoaded", function () {
+        obtenerDatosSesion();
+        cargarDatos('alumnos', 'listAlumnos');
+    });
+
+    function obtenerDatosSesion() {
+            fetch(`http://localhost:3000/datosSesion`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.nombre_usuario && (data.rol === 'tutor' || data.rol === 'admin')) {
+                        document.getElementById('nombreUsuario').innerText = data.nombre_usuario;
+                        document.getElementById('opcionesAdmin').innerHTML =
+                            data.rol === 'tutor' ? '<a class="cerrar-sesion" href="../profesorDashboard/menuProfesor.html">Opciones profesor</a>' : '';
+                        document.getElementById('opcionesAdmin').innerHTML +=
+                            data.rol === 'admin' ? '<a class="cerrar-sesion" href="../adminDashboard/menuAdmin.html">Opciones administrador</a>' : '';
+                    } else {
+                        window.location.href = 'http://localhost:3000/';
+                    }
+                })
+                .catch(error => console.error("Error al cargar los datos:", error));
+        }
+
+
+    let alumnosData = []; // Guarda los datos originales
+    function cargarDatos(tabla, formulario) {
+        fetch(`http://localhost:3000/datosRolProfesor/${tabla}`)
+            .then(response => response.json())
+            .then(data => {
+                // GUARDAMOS LOS DATOS QUE OBTIENE SIN BUSCADOS
+                alumnosData = data;
+                mostrarDatos(alumnosData, formulario);
+            })
+            .catch(error => console.error("Error al cargar los datos:", error));
+    }
+
+    function mostrarDatos(data, formulario) {
+        let formDatos = document.getElementById(formulario);
+        formDatos.innerHTML = ""; // Limpiar contenido antes de agregar nuevos datos
+        data.forEach(datos => {
+            let row = `<div class="containerDatos">`;
+            row += pintarEstado(datos);
+                row += `<h2>${datos.nombre}</h2>
+                <p><strong>Curso:</strong> ${datos.curso}</p>
+                <p><strong>Centro:</strong> ${datos.centro}</p>
+                <div class="input-container">
+                    <select id="estado_${datos.id}" name="estado"></select>
+                </div>
+                <div class="botones">
+                    <button class="boton-editar" onclick="actualizarEstadoAlumno('alumnos', '${datos.id}')">Cambiar estado</button>
+                </div>
+            </div>`;
+            formDatos.innerHTML += row;
+            obtenerEstados('alumnos', datos.id);
+        });
+    }
+
+    function pintarEstado(datos){
+        let row = '';
+        if(datos.estado === 'NO REALIZA PRACTICAS' || datos.estado === 'FINALIZADO'){
+            row += `<p class="mensaje">${datos.estado}</p>`;
+        }else if(datos.estado === 'ASIGNADO A EMPRESA'){
+            row += `<p class="mensajeBueno">${datos.estado}</p>`;
+        }else{
+            row += `<p class="otroMensaje">${datos.estado}</p>`;
+        }
+        return row;
+        }
+
+    function filtrarDatos() {
+        let filtro = document.getElementById("busqueda").value.toLowerCase();
+        // FILTRAMOS POR NOMBRE Y CENTRO
+        let datosFiltrados = alumnosData.filter(alumno =>
+            alumno.nombre.toLowerCase().includes(filtro) ||
+            alumno.estado.toLowerCase().includes(filtro)
+        );
+        mostrarDatos(datosFiltrados, "listAlumnos");
+    }
+
+    async function obtenerEstados(tabla, id){
+            try {
+                const responseEstados = await fetch(`http://localhost:3000/obtenerEstados/${tabla}`);
+                const dataEstados = await responseEstados.json();
+                // obtener estado especifico por ID
+                const responseEstadoAlumno = await fetch(`http://localhost:3000/obtenerEstadoPorId/${tabla}/${id}`);
+                const dataEstadoAlumno = await responseEstadoAlumno.json();
+                // LANZA EXECEPCION SI EL RESULTADO NO ES EXITOSO
+                if (!dataEstados.success || !dataEstadoAlumno.success) {
+                    throw new Error("Error al obtener datos");
+                }
+                // GENERA EL SELECR
+                const selectEstado = document.getElementById(`estado_${id}`);
+                dataEstados.estados.forEach(estado => {
+                    const option = document.createElement("option");
+                    option.value = estado;
+                    option.textContent = estado;
+                    // SI EL ESTADO COINCIDE SE MARFCA COMO SELECTED
+                    if (estado === dataEstadoAlumno.estado) {
+                        option.selected = true;
+                    }
+                    selectEstado.appendChild(option);
+                });
+
+            } catch (error) {
+                console.error("Error al obtener los estados:", error);
+            }
+    }
+
+    async function actualizarEstadoAlumno(tabla, id) {
+        // OBTENEMOS EL VALUE DEL LA OPCION SELECT SELECCIONADO
+        const selectEstado = document.getElementById(`estado_${id}`);
+        const nuevoEstado = selectEstado.value;
+        try {
+            // AHCEMOS UNA LLAMADA AL SERVIDOR CON EL METODO PUT QUE INDICA AL SERVIDOR QUE VA A HABER AZTUALIZACIOENS
+            // ESTE ESPERA RESPUESTA DEL SERVIDOR
+            const response = await fetch(`http://localhost:3000/actualizarEstado/${tabla}/${id}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                // INDICAMOS QUE VAMOS A ENVIAR AL SERVIDOR EL NUEVO ESTADO EN FORMATO JSON
+                body: JSON.stringify({ nuevoEstado })
+            });
+            // ESPERA QUE LA RESPUESTA SEL SERVIDOR SE CONVIERTA FOMRATO JSON
+            const data = await response.json();
+            // SI LA RESPUESTA ES EXITOSA O VERDADERA DA UN MENSAJE DE EXITO Y MUESTRA LOS DATOS CAMBIADOS
+            if (data.success) {
+                alert(data.message);
+                cargarDatos('alumnos', 'listAlumnos');
+            } else {
+                throw new Error(data.message);
+            }
+        } catch (error) {
+            console.error("Error al actualizar el estado:", error);
+            alert("❌ Error al actualizar el estado. Inténtalo nuevamente.");
+        }
+    }
+
+    </script>
+  </body>         
+</html>         

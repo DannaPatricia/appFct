@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seguimientos</title>
+    <link href="../style.css" rel="stylesheet">
+</head>
+<body>
+    <header>
+        <nav class="nav-usuario" aria-label="nav-usuario">
+            <div class="container-usuario">
+                <span class="nombre-web">Gestión FCT</span>
+                <div class="usuario-opciones">
+                    <span class="usuario" id="nombreUsuario"></span>
+                    <span class="usuario" id="opcionesAdmin"></span>
+                    <span class="usuario" id="opcionesTutor"></span>
+                    <a class="cerrar-sesion" href="http://localhost:3000/logout">Cerrar sesión</a>
+                </div>
+            </div>
+        </nav>
+        <nav class="nav-navegacion">
+            <div class="container-navegacion">
+                <ul class="menu" id="navNavegacion">
+                    <li><a href="fases.html?tipo=asignar">Asignar a empresa</a></li>
+                    <li><a href="fases.html?tipo=convenio">Realizar convenio</a></li>
+                    <li><a href="menuTutor.html">Inicio</a></li>
+                    <li><a href="fases.html?tipo=relacion">Relación alumnos</a></li>
+                    <li><a href="fases.html?tipo=horario">Programa y horario</a></li>
+                    <li><a href="seguimiento.html">Seguimiento</a></li>
+                </ul>
+            </div>
+        </nav>
+    </header>
+    
+    <main>
+        <h1>Seguimientos</h1>
+        
+        <!-- 🔍 Buscador para filtrar por tipo de seguimiento o empresa -->
+        <div class="buscador">
+            <input type="text" id="buscador" placeholder="🔍 Buscar por tipo o empresa..." onkeyup="filtrarSeguimientos()">
+        </div>
+
+        <div class="formulario" id="seguimientos"></div>
+    </main>
+    
+    <footer class="footer">
+        <div class="footer-container">
+            <p>&copy; 2025 Gestión FCT. Todos los derechos reservados.</p>
+        </div>
+    </footer>
+
+    <script>
+        let seguimientosGlobales = []; // 🔹 Guardamos los datos para filtrar
+
+        document.addEventListener("DOMContentLoaded", function () {
+            obtenerDatosSesion();
+            cargarDatos('seguimiento');
+        });
+
+        function obtenerDatosSesion() {
+            fetch(`http://localhost:3000/datosSesion`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.nombre_usuario && (data.rol === 'tutor' || data.rol === 'admin')) {
+                        document.getElementById('nombreUsuario').innerText = data.nombre_usuario;
+                        document.getElementById('opcionesTutor').innerHTML =
+                            data.rol === 'tutor' ? '<a class="cerrar-sesion" href="../profesorDashboard/menuProfesor.html">Opciones profesor</a>' : '';
+                        document.getElementById('opcionesAdmin').innerHTML +=
+                            data.rol === 'admin' ? '<a class="cerrar-sesion" href="../adminDashboard/menuAdmin.html">Opciones administrador</a>' : '';
+                    } else {
+                        window.location.href = 'http://localhost:3000/';
+                    }
+                })
+                .catch(error => console.error("Error al cargar los datos:", error));
+        }
+
+        async function cargarDatos(tabla) {
+            try {
+                const response = await fetch(`http://localhost:3000/datosRolTutor/${tabla}`);
+                const data = await response.json();
+                seguimientosGlobales = data; // Guardamos los datos originales
+                mostrarDatos(data);
+            } catch (error) {
+                console.error("Error al cargar los datos:", error);
+            }
+        }
+
+        async function mostrarDatos(data) {
+            let divDatos = document.getElementById('seguimientos');
+            divDatos.innerHTML = `<button class="boton-opcion"><a href="form/seguimiento-insert.html">Insertar seguimiento</a></button>`; 
+            if (data.length === 0) {
+                divDatos.innerHTML = `<p class="mensaje">No hay seguimientos registrados.</p>`;
+                return;
+            }
+            for (const datos of data) {
+                let empresaNombre = await obtenerEmpresa(datos.empresa_id);
+                let row = `<div class="containerDatos seguimiento-item" data-tipo="${datos.tipo.toLowerCase()}" data-empresa="${empresaNombre.toLowerCase()}">
+                    <h2 class="mensajeAzul">Seguimiento #${datos.id} <strong>Empresa:</strong> ${empresaNombre}</h2>
+                    <p><strong>Tipo:</strong> ${datos.tipo || 'No especificado'}</p>
+                    <p><strong>Fecha:</strong> ${datos.fecha}</p>
+                    <p><strong>Detalle:</strong> ${datos.detalle || 'Sin detalles'}</p>
+                    <p><strong>Próximo paso:</strong> ${datos.prox_paso || 'No definido'}</p>
+                    <p><strong>Fecha próximo paso:</strong> ${datos.fecha_prox_paso || 'No definida'}</p>
+                    <p><strong>Observaciones:</strong> ${datos.observaciones || 'Sin observaciones'}</p>
+                    <div class="botones">
+                        <button class="boton-borrar" onclick="eliminarDato('${datos.id}', 'seguimiento')">Eliminar seguimiento</button>
+                    </div>
+                </div>`;
+                divDatos.innerHTML += row;
+            }
+        }
+
+        async function obtenerEmpresa(id) {
+            if (!id) return "Empresa no asignada";
+            try {
+                const response = await fetch(`http://localhost:3000/obtenerEmpresa/${id}`);
+                const data = await response.json();
+                return data.success ? data.empresa.nombre : "Empresa no encontrada";
+            } catch (error) {
+                console.error("Error al obtener la empresa:", error);
+                return "Error al obtener empresa";
+            }
+        }
+
+        function eliminarDato(id, tabla) {
+            if (confirm("¿Estás seguro de que deseas eliminar este registro?")) {
+                fetch(`http://localhost:3000/eliminarRolTutor/${tabla}/${id}`, {
+                    method: 'DELETE',
+                })
+                .then(response => response.json())
+                .then(() => {
+                    alert(`✅ Registro eliminado de la tabla ${tabla}`);
+                    cargarDatos(tabla);
+                })
+                .catch(error => {
+                    console.error('Error al eliminar el registro:', error);
+                    alert('Hubo un problema al eliminar el registro');
+                });
+            }
+        }
+
+        function filtrarSeguimientos() {
+            const filtro = document.getElementById('buscador').value.toLowerCase();
+            const items = document.querySelectorAll('.seguimiento-item');
+            items.forEach(item => {
+                const tipo = item.getAttribute('data-tipo');
+                const empresa = item.getAttribute('data-empresa');
+                if (tipo.includes(filtro) || empresa.includes(filtro)) {
+                    item.style.display = "block";
+                } else {
+                    item.style.display = "none";
+                }
+            });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,427 @@
+/* Estilos generales del cuerpo */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    height: 100vh; /* Hacer que el cuerpo ocupe toda la altura de la pantalla */
+}
+
+h1{
+    text-align: center;
+    padding: 1em;
+}
+
+h2{
+    text-align: center;
+    padding: 0.5em;
+}
+
+a{
+    text-decoration: none;
+    color: white;
+}
+
+.saludo{
+    font-size: 1.5em;
+    text-align: center;
+    margin-top: 2em;
+    margin-bottom: 0;
+    line-height: 1.7em;
+}
+
+.bienvenida{
+    display: flex;
+    margin: 0 auto;
+    margin-top: 0;
+    justify-content: center;
+    align-items: center;
+    flex-direction: row;
+    width: 70%;
+}
+
+.bienvenida img{
+    width: 37em;
+    margin-top: 6em;
+    height: 35em;
+}
+
+/* Estilo de la barra de navegación inferior */
+.nav-navegacion {
+    background-color:  #b6a745;
+    color: white;
+    padding: 1em 0;
+}
+
+.container-navegacion {
+    text-align: center;
+}
+
+.menu {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+}
+
+.menu li {
+    display: inline-block;
+    margin: 0 1.5em;
+    position: relative;
+}
+
+.menu li a {
+    color: white;
+    text-decoration: none;
+    font-size: 16px;
+    transition: color 0.3s ease; /* Transición suave para el color */
+}
+
+.menu li a:hover {
+    color: #333333;  /* Cambiar color del texto cuando se pasa el cursor */
+}
+
+/* Agregar la línea debajo de cada enlace */
+.menu li a::after {
+    content: '';
+    display: block;
+    width: 0%;
+    height: 2px;
+    background-color: #333333;  /* Color de la línea */
+    transition: width 0.3s ease; /* Transición para que la línea crezca */
+}
+
+.menu li a:hover::after {
+    width: 100%;  /* Al hacer hover, la línea crece a su tamaño completo */
+}
+
+/* Estilos del header */
+header {
+    width: 100%;
+}
+
+.nav-usuario {
+    background-color: #333333;
+    padding: 1em 0;
+}
+
+.container-usuario {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 1.7em;
+}
+
+.nombre-web {
+    color: white;
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.usuario-opciones {
+    display: flex;
+    align-items: center;
+    margin-right: 1em;
+}
+
+.usuario {
+    color: white;
+    margin-right: 2em;
+    transition: color 0.3s ease; /* Transición de color para usuario */
+}
+
+.cerrar-sesion {
+    color: white;
+    text-decoration: none;
+    font-size: 14px;
+    transition: color 0.3s ease; /* Transición de color para cerrar sesión */
+}
+
+.usuario:hover,
+.cerrar-sesion:hover {
+    color: #b6a745; /* Cambiar color al pasar el cursor */
+}
+
+.cerrar-sesion:hover {
+    text-decoration: none; /* Eliminar subrayado */
+}
+
+/* 🔍 Estilos del buscador */
+.buscador {
+    display: flex;
+    justify-content: center;
+    margin: 20px 0;
+}
+
+.buscador input {
+    width: 50%;
+    max-width: 400px;
+    padding: 12px 40px 12px 20px;
+    font-size: 16px;
+    border: 2px solid #ddd;
+    border-radius: 25px;
+    outline: none;
+    transition: all 0.3s ease-in-out;
+    background-color: #fff;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.buscador input::placeholder {
+    color: #aaa;
+    font-style: italic;
+}
+
+.buscador input:focus {
+    border-color: #b6a745;
+    box-shadow: 0px 4px 8px rgba(83, 92, 2, 0.165);
+}
+
+/* 🔎 Icono de búsqueda dentro del input */
+.buscador {
+    position: relative;
+}
+
+.buscador::before {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 18px;
+    color: #aaa;
+}
+
+main {
+    flex: 1; /* Hace que el main ocupe el espacio disponible */
+}
+
+
+/* Formulario */
+.formulario, .containerDatos, .bienvenidaForm{
+    max-width: 700px;
+    margin: 3.5em auto;
+    padding: 2em;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+
+.bienvenidaForm{
+    width: 100%;
+    height: 90%;
+    margin-top: 6em;
+    padding: 3em;
+}
+.containerDatos p{
+    font-size: 19px;
+    color: #333;
+    text-align: center;
+}
+
+.input-container {
+    margin-bottom: 1.5em;
+}
+
+.input-container label {
+    display: block;
+    margin-bottom: 0.5em;
+    font-size: 16px;
+    color: #333;
+}
+
+.input-container input,
+.input-container select,
+.input-container  textarea {
+    width: 100%;
+    padding: 0.8em;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.input-container  textarea {
+    height: 120px;
+}
+
+.input-container  input:focus,
+.input-container  select:focus,
+.input-container  textarea:focus {
+    border-color: #b6a745;
+    outline: none;
+}
+
+/* Botones */
+.botones {
+    display: flex;
+    justify-content: center;
+    gap: 3em;
+    margin-top: 3em;
+    margin-bottom: 2em;
+}
+
+.boton-enviar,
+.boton-borrar,
+.boton-editar {
+    padding: 0.8em 2em;
+    font-size: 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.boton-opcion{
+    display: flex;
+    justify-content: center;
+    margin: auto;
+    margin-top: 1em;
+    padding: 1em;
+    font-size: 20px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    background-color: #807408;
+    color: white;
+    transition: background-color 0.3s ease;
+}
+
+.boton-opcion:hover {
+    background-color: #685e07;
+}
+
+
+.boton-enviar {
+    background-color: #4CAF50;
+    color: white;
+}
+
+.boton-enviar:hover {
+    background-color: #45a049;
+}
+
+.boton-editar {
+    background-color: #0953a3;
+    color: white;
+}
+
+.boton-editar:hover {
+    background-color: rgb(6, 76, 150);
+}
+
+.boton-borrar {
+    background-color: #f44336;
+    color: white;
+}
+
+.boton-borrar:hover {
+    background-color: #e53935;
+}
+
+.registro-link {
+    text-align: center;
+    margin-top: 1rem;
+    font-size: 1rem;
+    color: #555;
+}
+
+.registro-link p {
+    margin: 0;
+}
+
+.registro-link a {
+    color: #007BFF;
+    text-decoration: none;
+    font-weight: bold;
+    transition: color 0.3s ease;
+}
+
+.registro-link a:hover {
+    color: #0056b3;
+    text-decoration: underline;
+}
+
+
+.mensaje, .mensajeBueno, .otroMensaje, .mensajeAzul {
+    text-align: center;
+    font-size: 18px;
+    padding: 15px;
+    border-radius: 5px;
+    width: 50%;
+    margin: 20px auto;
+}
+
+.mensaje{
+    width: 90%;
+    color: #ff6347;
+    background-color: #fff3f3;
+    border: 1px solid #ff6347;
+}
+
+.mensajeBueno {
+    width: 90%;
+    color: #38b443;
+    background-color: #f8fff3;
+    border: 1px solid #38b443;
+}
+
+.otroMensaje {
+    width: 90%;
+    color: #77690d;
+    background-color: #b1a4138a;
+    border: 1px solid #7d6e0d;
+}
+
+.mensajeAzul{
+    width: 90%;
+    color: rgb(249, 249, 249);
+    background-color: #03033e6a;
+    border: 1px solid #030a30;
+}
+
+
+/* Responsive */
+@media (max-width: 768px) {
+    .formulario {
+        padding: 1.5em;
+    }
+}
+
+/* Estilos del footer */
+.footer {
+    background-color: #333333;
+    color: white;
+    padding: 1em 0;
+    text-align: center;
+    position: relative;
+    width: 100%;
+    bottom: 0;
+}
+
+.footer-container p {
+    margin: 0;
+    font-size: 14px;
+}
+
+/* Estilos responsivos */
+@media screen and (max-width: 768px) {
+    .container-usuario {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .usuario-opciones {
+        margin-top: 10px;
+    }
+
+    .menu li {
+        display: block;
+        margin: 10px 0;
+    }
+}
+
+@media screen and (min-width: 769px) {
+    .container-usuario {
+        flex-direction: row;
+        justify-content: space-between;
+    }
+}

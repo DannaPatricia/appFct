@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de Alumnos</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        button { padding: 5px 10px; background-color: blue; color: white; border: none; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <h1>Lista de Alumnos</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>DNI</th>
+            </tr>
+        </thead>
+        <tbody id="alumnosTable">
+            <!-- Los datos se insertarán aquí dinámicamente -->
+        </tbody>
+    </table>
+
+    <script>
+        // Llamar a la API de alumnos
+        fetch("http://localhost:3000/alumnos") // Cambia la URL si es necesario
+            .then(response => response.json()) // Convertir la respuesta en JSON
+            .then(data => {
+                let tableBody = document.getElementById("alumnosTable");
+                data.forEach(alumno => {
+                    let row = `<tr>
+                        <td>${alumno.id_alumno}</td>
+                        <td>${alumno.nombre_alumno}</td>
+                        <td>${alumno.dni}</td>
+                        <td><button onclick="editarAlumno(${alumno.id_alumno})">Editar</button></td>
+                    </tr>`;
+                    tableBody.innerHTML += row;
+                });
+            })
+            .catch(error => console.error("Error al cargar los alumnos:", error));
+
+            // Función para redirigir a la página de edición
+        function editarAlumno(id) {
+            window.location.href = `/editar-alumno.html?id=${id}`;
+        }
+
+        function darAltaAlumno() {
+            const formDate = new FormData(this);
+            const datos = Object.fromEntries(formData.entries());
+
+             fetch("/api/registrar_alumno", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(datos) // Envía todos los datos del formulario
+            })
+            .then(response => response.json())
+            .then(data => alert(data.message))
+            .catch(error => console.error("Error:", error));
+        }
+    </script>
+
+</body>
+</html>

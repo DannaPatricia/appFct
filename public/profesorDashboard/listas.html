@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+    <header>
+        <nav class="nav-usuario" aria-label="nav-usuario">
+            <div class="container-usuario">
+                <span class="nombre-web">Gestión FCT</span>
+                <div class="usuario-opciones">
+                    <span class="usuario" id="nombreUsuario"></span>
+                    <span class="usuario" id="opcionesAdmin"></span>
+                    <span class="usuario" id="opcionesTutor"></span>
+                    <a href="http://localhost:3000/logout" class="cerrar-sesion">Cerrar sesión</a>
+                </div>
+            </div>
+        </nav>
+        <nav class="nav-navegacion">
+            <div class="container-navegacion">
+                <ul class="menu" id="navNavegacion">
+                    <li><a href="listas.html?tipo=alumnos">Alumnos</a></li>
+                    <li><a href="listas.html?tipo=empresas">Empresas</a></li>
+                    <li><a href="menuProfesor.html">Inicio</a></li>
+                    <li><a href="listas.html?tipo=representantes">Representantes</a></li>
+                </ul>
+            </div>
+        </nav>
+    </header>
+    <main>
+        <div class="buscador">
+            <input type="text" id="buscador" placeholder="🔍 Buscar por nombre o centro..." onkeyup="filtrarDatosLista(this.value)">
+        </div>
+        <div id="listado"></div>
+    </main>
+    <footer class="footer">
+        <div class="footer-container">
+            <p>&copy; 2025 Gestión FCT. Todos los derechos reservados.</p>
+        </div>
+    </footer>
+    <script>
+      const urlParams = new URLSearchParams(window.location.search);
+        const tipo = urlParams.get('tipo');
+        // AQUI ALMACENAMOS LOS DATOS ORIGINALES"""
+        let datosGlobales = [];
+        document.addEventListener("DOMContentLoaded", function () {
+            obtenerDatosSesion();
+            // DEPENDIENDO DEL TIPO OBTENIDO DE LA URL: EMPRESAS, ALUMNOS...
+            cargarDatosLista(tipo);
+        });
+        
+        function obtenerDatosSesion() {
+            fetch(`http://localhost:3000/datosSesion`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.nombre_usuario) {
+                        document.getElementById('nombreUsuario').innerText = data.nombre_usuario;
+                        document.getElementById('opcionesTutor').innerHTML =
+                        data.rol === 'tutor' ? '<a class="cerrar-sesion" href="../tutorDashboard/menuTutor.html">Opciones tutor</a>' : '';
+                        document.getElementById('opcionesAdmin').innerHTML = 
+                            data.rol === 'admin' ? '<a class="cerrar-sesion" href="../adminDashboard/menuAdmin.html">Opciones administrador</a>' : '';
+                    } else {
+                        window.location.href = 'http://localhost:3000/';
+                    }
+                })
+                .catch(error => console.error("Error al cargar los datos:", error));
+        }
+
+        async function cargarDatosLista(tabla) {
+            try {
+                const response = await fetch(`http://localhost:3000/datosRolProfesor/${tabla}`);
+                const data = await response.json();
+                // ALMACENAMOS DATOS A MOSTRAR
+                datosGlobales = data;
+                mostrarDatosLista(datosGlobales, tabla);
+            } catch (error) {
+                console.error("Error al cargar los datos:", error);
+            }
+        }
+
+        async function mostrarDatosLista(datos, tabla) {
+            let divLista = document.getElementById('listado');
+            divLista.innerHTML = ""; // Limpiar contenido antes de agregar nuevos datos
+            let contenido = `<div class="formulario">
+                         <button class="boton-opcion"><a href="../form/${tabla}.html">Insertar ${tabla}</a></button>`;
+            // LA DECLARAMOSCOMO CONSTANTE Y RECORREMOS PARA MOSTRAR SUS RESPECTIVOS DATOS
+            for (const datosItem of datos) {
+                let datosEspecificos = await pintaDatosEspecificos(tabla, datosItem);
+                contenido += `<div class="containerDatos">`;
+                contenido += pintarEstado(tabla, datosItem);
+                contenido += `<h2>${datosItem.nombre}</h2>${datosEspecificos}
+                        <div class="botones">
+                            <button class="boton-editar"><a href="../formUpdate/${tabla}-update.html?id=${datosItem.id}">Editar</a></button>
+                            <button class="boton-borrar" onclick="eliminarDato('${datosItem.id}', '${tabla}')">Eliminar</button>
+                        </div>
+                    </div>`;
+            }
+
+            contenido += '</div>';
+            divLista.innerHTML = contenido;
+        }
+
+        // FUNCION QUE FILTRA LOS DATOS POR NOMBRES O CENTRO EN CASO DE ALUMNOS ESTE LUEGO LLAMA ALA FUNCION DE MOSTRAR DATOS PASANDO
+        // POR PARAMETRO EL ARRAY CON LOS DATOS YA FILTRADOS
+        function filtrarDatosLista(texto) {
+            const textoLower = texto.toLowerCase();
+            const datosFiltrados = datosGlobales.filter(item =>
+                item.nombre.toLowerCase().includes(textoLower) ||
+                (item.centro && item.centro.toLowerCase().includes(textoLower))
+            );
+            // LLLAMADA A FUNCION PARA MOSTRAR DATOS FILTRADOS
+            mostrarDatosLista(datosFiltrados, tipo);
+        }
+
+        function eliminarDato(id, tabla) {
+            if (confirm("¿Estás seguro de que deseas eliminar este registro?")) {
+                fetch(`http://localhost:3000/eliminarRolProfesor/${tabla}/${id}`, {
+                    method: 'DELETE',
+                })
+                .then(response => response.json())
+                .then(() => {
+                    alert(`✅ Registro eliminado de la tabla ${tabla}`);
+                    cargarDatosLista(tabla);
+                })
+                .catch(error => {
+                    console.error('Error al eliminar el registro:', error);
+                    alert('Hubo un problema al eliminar el registro');
+                });
+            }
+        }
+
+        async function pintaDatosEspecificos(tabla, datos) {
+            let row = ""; 
+            if (tabla === 'alumnos') {
+                row += `<p><strong>Curso:</strong> ${datos.curso}</p>
+                        <p><strong>Centro:</strong> ${datos.centro}</p>`;
+            } else if (tabla === 'empresas') {
+                row += `<p><strong>Dirección:</strong> ${datos.direccion}</p>
+                        <p><strong>Email:</strong> ${datos.email}</p>`;
+            } else if (tabla === 'representantes') {
+                let empresaNombre = await obtenerEmpresa(datos.empresa_id);
+                row += `<p><strong>Empresa:</strong> ${empresaNombre}</p>
+                        <p><strong>Departamento:</strong> ${datos.departamento}</p>
+                        <p><strong>Puesto:</strong> ${datos.cargo_puesto}</p>`;
+            }
+            return row;
+        }
+
+        async function obtenerEmpresa(id) {
+            try {
+                const response = await fetch(`http://localhost:3000/obtenerEmpresa/${id}`);
+                const data = await response.json();
+                if (!data.success) {
+                    return "Empresa no encontrada";
+                }
+                return data.empresa.nombre;
+            } catch (error) {
+                console.error("Error al obtener los datos:", error);
+                return "Error al obtener empresa";
+            }
+        }
+
+        function pintarEstado(tabla, datos){
+            let row = ""; 
+            if (tabla === 'alumnos') {
+                if(datos.estado === 'NO REALIZA PRACTICAS' || datos.estado === 'FINALIZADO'){
+                    row += `<p class="mensaje">${datos.estado}</p>`;
+                }else if(datos.estado === 'ASIGNADO A EMPRESA'){
+                    row += `<p class="mensajeBueno">${datos.estado}</p>`;
+                }else{
+                    row += `<p class="otroMensaje">${datos.estado}</p>`;
+                }
+            } else if (tabla === 'empresas') {
+                if(datos.estado === 'Contactado' || datos.estado === 'Admite alumnos'){
+                    row += `<p class="mensajeBueno">ESTADO: ${datos.estado}</p>`;
+                }else if(datos.estado === 'No admite alumnos'){
+                    row += `<p class="mensaje">ESTADO: ${datos.estado}</p>`;
+                }else{
+                    row += `<p class="otroMensaje">ESTADO: ${datos.estado}</p>`;
+                }
+            }
+            return row;
+        }
+    </script>
+</body>
+</html>

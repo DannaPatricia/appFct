@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link href="../style.css" rel="stylesheet">
+</head>
+<body>
+    <header>
+        <nav class="nav-usuario" aria-label="nav-usuario">
+            <div class="container-usuario">
+                <span class="nombre-web">Gestión FCT</span>
+                <div class="usuario-opciones">
+                    <span class="usuario" id="nombreUsuario"></span>
+                    <span class="usuario" id="opcionesAdmin"><a class="cerrar-sesion" href="menuAdmin.html">Opciones administrador</a></span>
+                    <a class="cerrar-sesion" href="http://localhost:3000/logout">Cerrar sesión</a>
+                </div>
+            </div>
+        </nav>
+        <nav class="nav-navegacion">
+            <div class="container-navegacion">
+                <ul class="menu" id="navNavegacion">
+                    <li><a href="../profesorDashboard/menuProfesor.html">Menú profesor</a></li>
+                    <li><a href="menuAdmin.html">Inicio</a></li>
+                    <li><a href="../tutorDashboard/menuTutor.html">Menú tutor</a></li>
+                </ul>
+            </div>
+        </nav>
+    </header>
+    <main>
+        <h1>Profesores</h1>
+        <div id="listado"></div>
+    </main>
+    <footer class="footer">
+        <div class="footer-container">
+            <p>&copy; 2025 Gestión FCT. Todos los derechos reservados.</p>
+        </div>
+    </footer>
+    <script>
+    document.addEventListener("DOMContentLoaded", function () {
+        obtenerDatosSesion();
+        cargarDatosLista("profesores");
+    });
+    function obtenerDatosSesion(){
+        // Llamar a la API
+        fetch(`http://localhost:3000/datosSesion`)
+        .then(response => response.json()) // Convertir a JSON
+        .then(data => {
+            if (data.nombre_usuario && data.rol === 'admin') {
+                let datosUsuario = document.getElementById('nombreUsuario');
+                datosUsuario.innerHTML = data.nombre_usuario; // Mostrar nombre de usuario
+            } else {
+                // Si no hay sesión activa, redirigir al login
+                window.location.href = 'http://localhost:3000/'; // Redirigir a la página de inicio de sesión
+            }
+        })
+        .catch(error => console.error("Error al cargar los datos:", error));
+    }
+
+    function cargarDatosLista(tabla) {
+        // Llamar a la API
+        fetch(`http://localhost:3000/datosRolAdmin/${tabla}`)
+            .then(response => response.json()) // Convertir a JSON
+            .then(data => {
+                let divLista = document.getElementById('listado');
+                divLista.innerHTML = ""; // Limpiar contenido antes de agregar nuevos datos
+                // Variable para construir todo el contenido
+                let contenido = `<div class="formulario">`;
+                contenido += `<button class="boton-opcion"><a href = "../form/${tabla}.html">Insertar ${tabla}</a></button>`;
+                // Iterar sobre los datos y construir cada bloque de contenido
+                data.forEach(datos => {
+                    contenido += '<div class="containerDatos">';
+                    contenido += `<h2>${datos.nombre}</h2>`;
+                    contenido += `<p>Email. ${datos.email}</p>`;
+                    contenido += `<p>Centro. ${datos.centro}</p>`;
+                    contenido += `<p>Puesto. ${datos.rol}</p>`;
+                    contenido += `<div class="botones">
+                        <button class="boton-editar"><a href = "../formUpdate/${tabla}-update.html?id=${datos.id}">Editar</a></button>
+                        <button class="boton-borrar" onclick="eliminarDato('${datos.id}', '${tabla}')">Eliminar</button>
+                    </div>
+                    </div>`;
+                });
+
+                contenido += '</div>';
+                divLista.innerHTML = contenido; // Agregar todo el contenido a divLista
+            })
+            .catch(error => console.error("Error al cargar los datos:", error));
+    }
+
+    function eliminarDato(id, tabla) {
+    // Confirmamos si el usuario realmente quiere eliminar el dato
+        if (confirm("¿Estás seguro de que deseas eliminar este registro?")) {
+            // Realizamos la solicitud DELETE usando fetch
+            fetch(`http://localhost:3000/eliminarRolAdmin/${tabla}/${id}`, {
+                method: 'DELETE',  // Indicamos que la solicitud es DELETE
+            })
+            .then(response => response.json())  // Convertimos la respuesta en JSON
+            .then(data => {
+                alert(`✅Registro eliminado de la tabla ${tabla}`);
+                cargarDatosLista(tabla);
+            })
+            .catch(error => {
+                console.error('Error al eliminar el registro:', error);
+                alert('Hubo un problema al eliminar el registro');
+            });
+        }
+    }
+    </script>
+  </body>         
+</html>         

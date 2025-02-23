@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modificar Profesor</title>
+    <link href="../style.css" rel="stylesheet">
+</head>
+<body>
+    <header>
+        <nav class="nav-usuario" aria-label="nav-usuario">
+            <div class="container-usuario">
+                <span class="nombre-web">Gestión FCT</span>
+                <div class="usuario-opciones">
+                    <span class="usuario" id="nombreUsuario"></span>
+                    <span class="usuario" id="opcionesAdmin"></span>
+                    <a class="cerrar-sesion" href="http://localhost:3000/logout">Cerrar sesión</a>
+                </div>
+            </div>
+        </nav>
+        <nav class="nav-navegacion">
+            <div class="container-navegacion">
+                <ul class="menu" id="navNavegacion">
+                    <li><a href="../adminDashboard/menuAdmin.html">Inicio</a></li>
+                    <li><a href="../profesorDashboard/menuProfesor.html">Menú Profesor</a></li>
+                </ul>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <div id="mensajeResultado"></div>
+        <h2>Modificar Profesor</h2>
+        <form id="form" class="formulario">
+            <input type="hidden" id="id" name="id">
+            <div class="input-container">
+                <label for="nombre_usuario">Nombre de Usuario</label>
+                <input type="text" id="nombre_usuario" name="nombre_usuario" required>
+            </div>
+            <div class="input-container">
+                <label for="nombre">Nombre Completo</label>
+                <input type="text" id="nombre" name="nombre" required>
+            </div>
+            <div class="input-container">
+                <label for="dni">DNI</label>
+                <input type="text" id="dni" name="dni" required>
+            </div>
+            <div class="input-container">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+            <div class="input-container">
+                <label for="telefono">Teléfono</label>
+                <input type="text" id="telefono" name="telefono" required pattern="\d{9}" title="Debe ingresar un número de 9 dígitos">
+            </div>
+            <div class="input-container">
+                <label for="rol">Rol</label>
+                <select id="rol" name="rol">
+                    <option value="profesor">Profesor</option>
+                    <option value="tutor">Tutor</option>
+                </select>
+            </div>
+            <div class="input-container">
+                <label for="centro">Centro Educativo</label>
+                <select id="centro" name="centro">
+                    <option value="">Seleccione un centro</option>
+                </select>
+            </div>
+            <button type="submit" class="boton-enviar">Actualizar Profesor</button>
+        </form>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-container">
+            <p>&copy; 2025 Gestión FCT. Todos los derechos reservados.</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            obtenerDatosSesion();
+            obtenerDatoSelectCentro();
+            obtenerProfesor();
+        });
+
+        function obtenerDatosSesion() {
+            fetch("http://localhost:3000/datosSesion")
+                .then(response => response.json())
+                .then(data => {
+                    if (data.nombre_usuario) {
+                        document.getElementById("nombreUsuario").innerText = data.nombre_usuario;
+                        document.getElementById("opcionesAdmin").innerHTML = 
+                            data.rol === "admin" ? '<a class="cerrar-sesion" href="../adminDashboard/menuAdmin.html">Opciones administrador</a>' : '';
+                    } else {
+                        window.location.href = "http://localhost:3000/"; // Redirigir al login si no hay sesión
+                    }
+                })
+                .catch(error => console.error("Error al cargar los datos de sesión:", error));
+        }
+
+        function obtenerProfesor() {
+            const params = new URLSearchParams(window.location.search);
+            const id = params.get("id");
+            if (!id) {
+                alert("Error: No se ha recibido el ID del profesor.");
+                window.location.href = "../adminDashboard/menuAdmin.html";
+                return;
+            }
+
+            fetch(`http://localhost:3000/obtenerProfesor/${id}`)
+                .then(response => response.json())
+                .then(async data => {
+                    if (!data.success) {
+                        alert("No se encontró el profesor.");
+                        return;
+                    }
+                    await obtenerDatoSelectCentro();
+                    document.getElementById("id").value = id;
+                    document.getElementById("nombre_usuario").value = data.profesor.nombre_usuario;
+                    document.getElementById("nombre").value = data.profesor.nombre;
+                    document.getElementById("dni").value = data.profesor.dni;
+                    document.getElementById("email").value = data.profesor.email;
+                    document.getElementById("telefono").value = data.profesor.telefono;
+                    document.getElementById("rol").value = data.profesor.rol;
+                    document.getElementById("centro").value = data.profesor.centro;
+                })
+                .catch(error => console.error("Error al obtener los datos:", error));
+        }
+
+        document.getElementById("form").addEventListener("submit", function (event) {
+            event.preventDefault();
+            const id = document.getElementById("id").value;
+            const formData = new FormData(this);
+            const datos = Object.fromEntries(formData.entries());
+
+            fetch(`http://localhost:3000/actualizarProfesor/${id}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(datos)
+            })
+            .then(response => response.json())
+            .then(data => {
+                let mensajeDiv = document.getElementById("mensajeResultado");
+                if (data.success) {
+                    mensajeDiv.innerHTML = `<p class="mensajeBueno">${data.message}</p>`;
+                    setTimeout(() => {
+                        window.location.href = "../adminDashboard/menuAdmin.html"; 
+                    }, 1000);
+                } else {
+                    mensajeDiv.innerHTML = `<p class="mensaje">⚠️ ${data.message}</p>`;
+                }
+            })
+            .catch(error => {
+                console.error("Error al actualizar profesor:", error);
+                alert("Error al actualizar. Inténtalo nuevamente.");
+            });
+        });
+
+        function obtenerDatoSelectCentro() {
+            return fetch(`http://localhost:3000/selectCentro`)
+                .then(response => response.json())
+                .then(data => {
+                    const selectCentro = document.getElementById('centro');
+                    selectCentro.innerHTML = '<option value="">Seleccione un centro</option>';
+                    data.forEach(centro => {
+                        selectCentro.innerHTML += `<option value="${centro}">${centro}</option>`;
+                    });
+                })
+                .catch(error => console.error("Error al cargar los centros:", error));
+        }
+    </script>
+</body>
+</html>

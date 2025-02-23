@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link href="../style.css" rel="stylesheet">
+</head>
+<body>
+    <header>
+        <nav class="nav-usuario" aria-label="nav-usuario">
+            <div class="container-usuario">
+                <span class="nombre-web">Gestión FCT</span>
+                <div class="usuario-opciones">
+                    <span class="usuario" id="nombreUsuario"></span>
+                    <span class="usuario" id="opcionesAdmin"></span>
+                    <a class="cerrar-sesion" href="http://localhost:3000/logout">Cerrar sesión</a>
+                </div>
+            </div>
+        </nav>
+        <nav class="nav-navegacion">
+            <div class="container-navegacion">
+                <ul class="menu" id="navNavegacion">
+                    <li><a href="../profesorDashboard/listas.html?tipo=alumnos">Alumnos</a></li>
+                    <li><a href="../profesorDashboard/listas.html?tipo=empresas">Empresas</a></li>
+                    <li><a href="../profesorDashboard/menuProfesor.html">Inicio</a></li>
+                    <li><a href="../profesorDashboard/listas.html?tipo=representantes">Representantes</a></li>
+                </ul>
+            </div>
+        </nav>
+    </header>
+    <main>
+        <div id="mensajeResultado"></div>
+        <h2>Registro de Representante</h2>
+        <form id="form" class="formulario">
+            <div class="input-container">
+               <label for="nombre">Nombre Completo:</label>
+               <input type="text" id="nombre" name="nombre" required>
+           </div>
+   
+           <div class="input-container">
+               <label for="dni">DNI:</label>
+               <input type="text" id="dni" name="dni" required>
+           </div>
+   
+           <div class="input-container">
+               <label for="telefono">Teléfono:</label>
+               <input type="text" id="telefono" name="telefono" required pattern="\d{9}" title="Debe ingresar un número de 9 dígitos">
+            </div>
+   
+           <div class="input-container">
+               <label for="email">Correo Electrónico:</label>
+               <input type="email" id="email" name="email" required>
+           </div>
+
+           <div class="input-container">
+            <label for="cargo_puesto">Cargo o puesto:</label>
+            <input type="text" id="cargo_puesto" name="cargo_puesto" required>
+        </div>
+
+        <div class="input-container">
+            <label for="departamento">Departamento:</label>
+            <input type="text" id="departamento" name="departamento" required>
+        </div>
+   
+           <div class="input-container">
+               <label for="empresa_id">Empresa:</label>
+               <select id="empresa_id" name="empresa_id" required>
+                   <option value="">Seleccione una empresa</option>
+                   <!-- Aquí irían las opciones dinámicas desde la base de datos -->
+               </select>
+           </div>
+   
+           <button type="submit" class = "boton-enviar">Insertar Representante</button>
+       </form>
+       </main>
+    <footer class="footer">
+        <div class="footer-container">
+            <p>&copy; 2025 Gestión FCT. Todos los derechos reservados.</p>
+        </div>
+    </footer>
+    <script>
+    document.addEventListener("DOMContentLoaded", function () {
+            obtenerDatosSesion();
+            obtenerDatoSelectEmpresa();
+        });
+
+        function obtenerDatosSesion() {
+            // Llamar a la API
+            fetch(`http://localhost:3000/datosSesion`)
+                .then(response => response.json()) // Convertir a JSON
+                .then(data => {
+                    if (data.nombre_usuario) {
+                        let datosUsuario = document.getElementById('nombreUsuario');
+                        let opcionesAdmin = document.getElementById('opcionesAdmin');
+                        datosUsuario.innerHTML = data.nombre_usuario; // Mostrar nombre de usuario
+                        opcionesAdmin.innerHTML = (data.rol === 'admin') ? '<a class="cerrar-sesion" href="../adminDashboard/menuAdmin.html">Opciones administrador</a>' : '';
+                        if(data.rol === 'tutor'){
+                            let navNavegacion = document.getElementById('navNavegacion');
+                            navNavegacion.innerHTML += `<li><a href="../tutorDashboard/menuTutor.html">Sección tutor</a></li>`;
+                        }
+                    } else {
+                        // Si no hay sesión activa, redirigir al login
+                        window.location.href = 'http://localhost:3000/'; // Redirigir a la página de inicio de sesión
+                    }
+                })
+                .catch(error => console.error("Error al cargar los datos:", error));
+        }
+
+        document.getElementById("form").addEventListener("submit", function (event) {
+            event.preventDefault(); // Evitar que la página se recargue
+                const formData = new FormData(this);
+                const datos = Object.fromEntries(formData.entries());
+                fetch("/insertar_representante", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(datos)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    let mensajeDiv = document.getElementById("mensajeResultado");
+                    if (data.success) {
+                        mensajeDiv.innerHTML = `<p class="mensajeBueno">${data.message}</p>`;
+                        // 🔹 Esperar 2 segundos antes de redirigir
+                        setTimeout(() => {
+                            window.location.href = "../profesorDashboard/listas.html?tipo=representantes"; 
+                        }, 1000);
+                    } else {
+                        mensajeDiv.innerHTML = `<p class="mensaje">⚠️ ${data.message}</p>`;
+                    }
+                })
+                .catch(error => {
+                    console.error("❌ Error al insertar representante:", error);
+                    alert("Hubo un problema al insertar el representante. Por favor, inténtalo de nuevo."); // Mostrar mensaje de error
+                });
+            });
+
+        function obtenerDatoSelectEmpresa() {
+            fetch(`http://localhost:3000/selectEmpresa`)
+                .then(response => response.json()) // Convertir a JSON
+                .then(data => {
+                    if (data) {
+                        const divContainer = document.getElementById('empresa_id');
+                        data.forEach(datosEmpresa => {
+                            divContainer.innerHTML += `<option value="${datosEmpresa.id}">${datosEmpresa.nombre}</option>`;
+                        });
+                    }
+                })
+                .catch(error => console.error("Error al cargar los datos:", error));
+        }
+    </script>
+  </body>
+</html>
