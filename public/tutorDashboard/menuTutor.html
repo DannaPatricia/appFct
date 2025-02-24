@@ -103,9 +103,9 @@
 
     function pintarEstado(datos){
         let row = '';
-        if(datos.estado === 'NO REALIZA PRACTICAS' || datos.estado === 'FINALIZADO'){
+        if(datos.estado === 'NO REALIZA PRACTICAS'){
             row += `<p class="mensaje">${datos.estado}</p>`;
-        }else if(datos.estado === 'ASIGNADO A EMPRESA'){
+        }else if(datos.estado === 'ASIGNADO A EMPRESA' || datos.estado === 'FINALIZADAS'){
             row += `<p class="mensajeBueno">${datos.estado}</p>`;
         }else{
             row += `<p class="otroMensaje">${datos.estado}</p>`;

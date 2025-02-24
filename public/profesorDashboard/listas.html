@@ -138,7 +138,9 @@
                 row += `<p><strong>Curso:</strong> ${datos.curso}</p>
                         <p><strong>Centro:</strong> ${datos.centro}</p>`;
             } else if (tabla === 'empresas') {
-                row += `<p><strong>Dirección:</strong> ${datos.direccion}</p>
+                let representanteNombre = await obtenerRepresentante(datos.representante_id);
+                row += `<p><strong>Representante:</strong> ${representanteNombre}</p>
+                        <p><strong>Dirección:</strong> ${datos.direccion}</p>
                         <p><strong>Email:</strong> ${datos.email}</p>`;
             } else if (tabla === 'representantes') {
                 let empresaNombre = await obtenerEmpresa(datos.empresa_id);
@@ -147,6 +149,20 @@
                         <p><strong>Puesto:</strong> ${datos.cargo_puesto}</p>`;
             }
             return row;
+        }
+
+        async function obtenerRepresentante(id) {
+            try {
+                const response = await fetch(`http://localhost:3000/obtenerRepresentante/${id}`);
+                const data = await response.json();
+                if (!data.success) {
+                    return "Representante no encontrado";
+                }
+                return data.representante.nombre;
+            } catch (error) {
+                console.error("Error al obtener los datos:", error);
+                return "Error al obtener Representante";
+            }
         }
 
         async function obtenerEmpresa(id) {
@@ -166,9 +182,9 @@
         function pintarEstado(tabla, datos){
             let row = ""; 
             if (tabla === 'alumnos') {
-                if(datos.estado === 'NO REALIZA PRACTICAS' || datos.estado === 'FINALIZADO'){
+                if(datos.estado === 'NO REALIZA PRACTICAS'){
                     row += `<p class="mensaje">${datos.estado}</p>`;
-                }else if(datos.estado === 'ASIGNADO A EMPRESA'){
+                }else if(datos.estado === 'ASIGNADO A EMPRESA' || datos.estado === 'FINALIZADAS'){
                     row += `<p class="mensajeBueno">${datos.estado}</p>`;
                 }else{
                     row += `<p class="otroMensaje">${datos.estado}</p>`;

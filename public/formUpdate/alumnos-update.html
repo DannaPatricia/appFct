@@ -82,7 +82,7 @@
             obtenerAlumno();
         });
 
-        
+        // OBTENEMOS DATOS DE SESION
         function obtenerDatosSesion(){
             // Llamar a la API
             fetch(`http://localhost:3000/datosSesion`)
@@ -105,6 +105,7 @@
             .catch(error => console.error("Error al cargar los datos:", error));
         }
 
+        // OBTENEMOS EL ALUMNOS A TRAVES DE SU ID
         function obtenerAlumno() {
             // OBTENEMOS EL IDI DEL ALUMNO A TRAVES DE LA URL
             const params = new URLSearchParams(window.location.search);
@@ -122,6 +123,7 @@
                         alert("No se encontró el alumno.");
                         return;
                     }
+                    // PINTAMOS ELEMENOTOS RECUPERADOS
                     document.getElementById("id").value = data.alumno.id;
                     document.getElementById("nombre").value = data.alumno.nombre;
                     document.getElementById("email").value = data.alumno.email;
@@ -134,17 +136,19 @@
                 .catch(error => console.error("Error al obtener los datos:", error));
         }
 
+        // EVENTO AL AHCER SUBMIT
         document.getElementById("form").addEventListener("submit", function (event) {
             event.preventDefault();
             const id = document.getElementById("id").value;
             const formData = new FormData(this);
             const datos = Object.fromEntries(formData.entries());
-
+            // LLAMADA A ACTUALIZAR ALUMNO
             fetch(`http://localhost:3000/actualizarAlumno/${id}`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(datos)
             })
+            // MENSAJES DE EXITO O FALLO
             .then(response => response.json())
             .then(data => {
                 let mensajeDiv = document.getElementById("mensajeResultado");
@@ -164,6 +168,7 @@
             });
         });
 
+        // OBTENEMOS LOS DATOS DEL SELDCT DE TUTPR
         async function obtenerDatoSelectTutor(idAlumno) {
             try {
                 // Obtener el tutor actual del alumno
@@ -184,6 +189,7 @@
             }
         }
 
+        // OBTENEMOS EL ID DEL TUTOR
         async function obtenerTutorAlumno(id, tabla) {
             try {
                 const response = await fetch(`http://localhost:3000/obtenerTutor/${tabla}/${id}`);
